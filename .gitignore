@@ -32,3 +32,8 @@ next-env.d.ts
 
 # Coverage
 coverage/
+
+.vercel
+
+# legacy subfolder (moved to root)
+autoheal-dashboard/
