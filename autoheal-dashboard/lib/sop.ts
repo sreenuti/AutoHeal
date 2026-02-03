@@ -55,3 +55,83 @@ export type SOPStep = {
     if (errorString.includes("File Writer")) return INFORMATICA_SOP.find(s => s.id === "FILE_WRITER_ESCALATION");
     return null;
   };
+
+  // ——— Bulk action guardrails (Audit + Safe-Stopping) ———
+
+  export type BulkAuditEntry = {
+    id: string;
+    bulkRunId: string;
+    logId: string;
+    masterReason: string;
+    index: number;
+    total: number;
+    outcome: "success" | "failed" | "halted";
+    timestamp: string;
+    note?: string;
+  };
+
+  export type BulkFixStepResult = {
+    success: boolean;
+    auditEntry: BulkAuditEntry;
+    shouldHaltAndEscalate: boolean;
+  };
+
+  /** Creates a unique audit entry for a single ticket in a bulk run, linked to the Master Reason. */
+  export function createBulkAuditEntry(
+    masterReason: string,
+    logId: string,
+    bulkRunId: string,
+    index: number,
+    total: number,
+    outcome: BulkAuditEntry["outcome"],
+    note?: string
+  ): BulkAuditEntry {
+    return {
+      id: `bulk-audit-${bulkRunId}-${index}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      bulkRunId,
+      logId,
+      masterReason,
+      index: index + 1,
+      total,
+      outcome,
+      timestamp: new Date().toISOString(),
+      note,
+    };
+  }
+
+  /**
+   * Deterministic rule for when a bulk fix step "fails" (e.g. target unreachable, validation error).
+   * Used for Safe-Stopping: when this returns true, the Agent must Halt and Escalate.
+   */
+  export function isBulkFixStepSimulatedFailure(index: number, _total: number): boolean {
+    return index === 2;
+  }
+
+  /**
+   * Executes one step of a bulk fix: creates a unique audit entry for the ticket and simulates
+   * the fix. If the fix fails, returns shouldHaltAndEscalate so the Agent stops and escalates.
+   */
+  export function executeBulkFixStep(
+    logId: string,
+    masterReason: string,
+    bulkRunId: string,
+    index: number,
+    total: number
+  ): BulkFixStepResult {
+    const failed = isBulkFixStepSimulatedFailure(index, total);
+    const outcome: BulkAuditEntry["outcome"] = failed ? "failed" : "success";
+    const auditEntry = createBulkAuditEntry(
+      masterReason,
+      logId,
+      bulkRunId,
+      index,
+      total,
+      failed ? "failed" : "success",
+      failed ? "Fix failed on this ticket; bulk run halted and escalated." : undefined
+    );
+    return {
+      success: !failed,
+      auditEntry,
+      shouldHaltAndEscalate: failed,
+    };
+  }

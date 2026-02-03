@@ -20,6 +20,7 @@ export type SyntheticLog = {
     folder: string;
     integrationService: string;
     sourceSystem: string;
+    targetTable?: string;
   };
 };
 
@@ -40,6 +41,7 @@ const ERROR_MAP = {
 
 const FOLDERS = ["FIN_PROD", "RETAIL_OPS", "AUDIT_V3"] as const;
 const SOURCE_SYSTEMS = ["Mainframe_DB2_CORE", "Wealth_SOR", "Retail_ODS"] as const;
+const TARGET_TABLES = ["tran_prod_ledger", "compliance_audit_log", "retail_daily_staging", "gl_recon_master"] as const;
 
 export function generateSyntheticLog(): SyntheticLog {
   const errorCode = faker.helpers.arrayElement(
@@ -54,6 +56,7 @@ export function generateSyntheticLog(): SyntheticLog {
   const timestamp = new Date().toISOString();
   const folder = faker.helpers.arrayElement(FOLDERS);
   const sourceSystem = faker.helpers.arrayElement(SOURCE_SYSTEMS);
+  const targetTable = faker.helpers.arrayElement(TARGET_TABLES);
   const threadId = faker.number.int({ min: 14000, max: 14999 });
 
   const { msg, module } = ERROR_MAP[errorCode];
@@ -83,6 +86,7 @@ export function generateSyntheticLog(): SyntheticLog {
       folder,
       integrationService: "IS_Bank_Prod_Grid",
       sourceSystem,
+      targetTable,
     },
   };
 }
