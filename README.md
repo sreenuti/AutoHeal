@@ -39,4 +39,10 @@ To run on a schedule (e.g. daily), use **Task Scheduler** with:
 
 ## Deploying to Vercel
 
-The app lives at the **repo root**, so Vercel’s default Root Directory works. Connect the repo and deploy; no Root Directory change needed.
+The app lives at the **repo root**. If you see **404 NOT_FOUND**:
+
+1. Open [Vercel Dashboard](https://vercel.com/dashboard) → your **AutoHeal** project → **Settings** → **General**.
+2. Find **Root Directory**. If it is set to `autoheal-dashboard` (or anything else), **clear it** or set it to **`.`** so Vercel uses the repo root.
+3. Click **Save**, then go to **Deployments** → **Redeploy** the latest deployment.
+
+`vercel.json` at repo root tells Vercel to use Next.js and `npm run build`.
